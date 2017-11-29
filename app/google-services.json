@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "798634509691",
+    "firebase_url": "https://rhythmchat-54ea6.firebaseio.com",
+    "project_id": "rhythmchat-54ea6",
+    "storage_bucket": "rhythmchat-54ea6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:798634509691:android:11dc20a35464ddfd",
+        "android_client_info": {
+          "package_name": "firebase.jin1ib.com.firemessenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "798634509691-j7cdqcv24rrhdm7v11agdpa0iurmrdgf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIys1UiZ-9YN3_or0JAipOgUS9qsRWFkQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
