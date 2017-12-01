@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +22,16 @@ public class MainActivity extends AppCompatActivity {
     버터나이프의 사용 용도는 매번 findByViewId를 이용하여 View를 연결 짓는데
     번거로움이 있어서 대체 하였습니다.
     */
-    @BindView(R.id.tabs)
+    @BindView(R.id.tabs)    //탭에 관한 findByViewId
     TabLayout mTabLayout;
 
-    @BindView(R.id.fab)
-    FloatingActionButton mFab;
+    @BindView(R.id.fab)     //5시방향버튼에 관한 findByViewId
+    FloatingActionButton mfab;
 
-    @BindView(R.id.viewpager)
+    @BindView(R.id.viewpager)// 흰색화면에 관한 findByViewId
     ViewPager mViewPager;
+
+    ViewPagerAdapter mPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +42,25 @@ public class MainActivity extends AppCompatActivity {
         mTabLayout.setupWithViewPager(mViewPager); //어떤 뷰페이저를 이용하겠는가? mViewPager를 이용하겠다.
         //tab에는 viewpager를 붙었으니 메소드를 사용해서 붙인다.
         setUpViewPager(); //내부에서만 쓰는 메소드이기에 private과
+        mfab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //어떤 프레그먼트를 보고있는지
+                Fragment currentFragment = mPagerAdapter.getItem(mViewPager.getCurrentItem()); //포지션을 가지고 오는것
+                if(currentFragment instanceof FriendFragment){
+                    //visibility를 해주기 위한 기능을 FriendFragment
+                    ((FriendFragment) currentFragment).toggleSearchbar(); // 토글바
+
+                }
+            }
+        });
     }
     private void setUpViewPager(){
-        ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager()); //객체생성
-        pagerAdapter.addFragment(new ChatFragment(), "채팅");
-        pagerAdapter.addFragment(new FriendFragment(), "친구");
+        mPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager()); //객체생성
+        mPagerAdapter.addFragment(new ChatFragment(), "채팅");
+        mPagerAdapter.addFragment(new FriendFragment(), "친구");
         //뷰페이저와 아답타를 연결
-        mViewPager.setAdapter(pagerAdapter);
+        mViewPager.setAdapter(mPagerAdapter);
     }
     private class ViewPagerAdapter extends FragmentPagerAdapter {//상속을 받아서 만듬
 
