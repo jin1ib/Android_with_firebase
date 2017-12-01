@@ -54,7 +54,7 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseReference mUserRef;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {//뷰가 로그인이 되는 progressbar생성
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mProgressView = (ProgressBar) findViewById(R.id.login_progress);
@@ -74,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
         // [START api client]
         // Configure Google Sign In
         mGoogleAPIClient = new GoogleApiClient.Builder(this)
-                                    //프레임액티비티가 라이프사이클을 관리할 수 있게 도움 onstart에서 실행해주고 onstop에서 끝어주도록 ,,,접속이 끊어졌을때
+                //프레임액티비티가 라이프사이클을 관리할 수 있게 도움 onstart에서 실행해주고 onstop에서 끝어주도록 ,,,접속이 끊어졌을때
                 .enableAutoManage(this/*FragmentActivity*/, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -127,14 +127,14 @@ public class LoginActivity extends AppCompatActivity {
                                 user.setEmail(firebaseUser.getEmail());
                                 user.setName(firebaseUser.getDisplayName());
                                 user.setUid(firebaseUser.getUid());
-                                if(firebaseUser.getPhotoUrl() != null)
-                                    user.setProfileUrl(firebaseUser.getPhotoUrl().toString());
                                 mUserRef.child(user.getUid()).setValue(user,new DatabaseReference.CompletionListener() {
                                     @Override   //setValue는 비동기 작업이 되기 때문에 이 작업이 완료가 됬는지 안됬는지 알 수가 없다.
                                                 // 그래서 정상적으로 컴플리트가 된 경우에만 로그를 쌓는것으로 한다.
                                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                                         Snackbar.make(mProgressView,"로그인에 성공하였습니다.",Snackbar.LENGTH_LONG).show();
                                         if (databaseError == null) {
+                                            startActivity(new Intent(LoginActivity.this, MainActivity.class)); // 로그인에서 main 화면으로 보내느것.
+                                            finish(); // 액티비티가 넘어가고 인증창 멈춤
                                             Bundle eventBundle = new Bundle();          //이벤트는 번들로 받아야 하기 때문에 생성
                                             eventBundle.putString("email", user.getEmail()); //이메일만 번들에 입력
                                             mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
