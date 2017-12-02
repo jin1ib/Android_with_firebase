@@ -4,6 +4,8 @@ package firebase.jin1ib.com.firemessenger.views;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,7 @@ import android.widget.LinearLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -24,6 +27,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import firebase.jin1ib.com.firemessenger.R;
+import firebase.jin1ib.com.firemessenger.adapters.FriendListAdapter;
 import firebase.jin1ib.com.firemessenger.models.User;
 
 /**
@@ -37,6 +41,8 @@ public class FriendFragment extends Fragment {
     @BindView(R.id.edtContent)
     EditText edtEmail;   //Email
 
+    @BindView(R.id.friendRecyclerView)
+    RecyclerView mRecyclerView;
 
     //위를 private로 하지 않은 이유는 butterknife의 경우 private로 하면 읽어 올 수 없기 때문
 
@@ -48,6 +54,9 @@ public class FriendFragment extends Fragment {
 
     private DatabaseReference mFriendsDBRef;
     private DatabaseReference mUserDBRef;
+
+    private FriendListAdapter friendListAdapter;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -61,6 +70,15 @@ public class FriendFragment extends Fragment {
 
         mFriendsDBRef = mFirebaseDb.getReference("users").child(mFirebaseUser.getUid()).child("friends"); //users/{유저 UID}/friends 저장
         mUserDBRef = mFirebaseDb.getReference("users"); //users/{유저 UID}/friends 저장
+
+        //-친구목록- 1.리얼타임데이터베이스에서 나의 친구목록을 리스너를 통해서 데이터를 가져옵니다.
+        //-친구목록-  2. 가져온 데이터를 통해서 recyclerview의 어답터에 아이템을 추가시켜줍니다. (UI)갱신
+        //-친구목록-  3. 아이템별로 (친구) 이벤트를 주어서 선택한 친구와 대화를 할 수 있도록 한다.
+        addFriendListener();
+        friendListAdapter = new FriendListAdapter();
+        mRecyclerView.setAdapter(friendListAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         return friendView;
     }
     public void  toggleSearchbar(){
@@ -156,8 +174,40 @@ public class FriendFragment extends Fragment {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+    private void  addFriendListener(){
+        mFriendsDBRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            //친구가 추가 되었을때
+            // -친구목록-  2. 가져온 데이터를 통해서 recyclerview의 어답터에 아이템을 추가시켜줍니다. (UI)갱신
+                User friend = dataSnapshot.getValue(User.class);
+                drawUI(friend);
+            }
 
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            //친구가 변경 되었을때
+            }
 
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            //친구가 삭제 되었을때
 
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+           //친구가 포지션, 정보가 이동
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            //친구가 취소
+            }
+        });
+    }
+    private void drawUI(User friend){
+        friendListAdapter.addItem(friend); //친구를 추가해주는부분
     }
 }

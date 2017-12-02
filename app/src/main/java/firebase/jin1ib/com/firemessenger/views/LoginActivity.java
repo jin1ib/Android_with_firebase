@@ -23,9 +23,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import firebase.jin1ib.com.firemessenger.R;
 import firebase.jin1ib.com.firemessenger.models.User;
@@ -119,32 +121,51 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {//완료가 되면 AuthResult라는 곳으로 콜백, 데이터가 넘어옴
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isComplete()){ //isComplete는 실패든 성공이든 호출 isSuesses는 성공일경우에만.
-                            if(task.isSuccessful()){
+                        if (task.isComplete()) { //isComplete는 실패든 성공이든 호출 isSuesses는 성공일경우에만.
+                            if (task.isSuccessful()) {
                                 //파이어베이스에서는 파이어베이스 유저 type이라는 자료형으로 유저의 데이터를 가지고 올 수 있다.
                                 FirebaseUser firebaseUser = task.getResult().getUser(); //성공했을때만 가지고옴
                                 final User user = new User();
                                 user.setEmail(firebaseUser.getEmail());
                                 user.setName(firebaseUser.getDisplayName());
                                 user.setUid(firebaseUser.getUid());
-                                mUserRef.child(user.getUid()).setValue(user,new DatabaseReference.CompletionListener() {
-                                    @Override   //setValue는 비동기 작업이 되기 때문에 이 작업이 완료가 됬는지 안됬는지 알 수가 없다.
-                                                // 그래서 정상적으로 컴플리트가 된 경우에만 로그를 쌓는것으로 한다.
-                                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                                        Snackbar.make(mProgressView,"로그인에 성공하였습니다.",Snackbar.LENGTH_LONG).show();
-                                        if (databaseError == null) {
-                                            startActivity(new Intent(LoginActivity.this, MainActivity.class)); // 로그인에서 main 화면으로 보내느것.
-                                            finish(); // 액티비티가 넘어가고 인증창 멈춤
-                                            Bundle eventBundle = new Bundle();          //이벤트는 번들로 받아야 하기 때문에 생성
-                                            eventBundle.putString("email", user.getEmail()); //이메일만 번들에 입력
-                                            mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
-                                        //콜백절에서 실행되기 때문에 데이터가 변경되지 않도록 final이라는 예약어로 데이터가 변경되는 것을 방지해야한다
-                                            // 즉, user를 final로 만듬
-                                            //로그 확인은  if문에 브래이크를 걸고 result를 확인해보면됨
-                                        }
-                                    }
-                                }); //해당 users는 users DB 밑에 userid들이 들어있는것이므로
-                                //바로위 user를 사용 할 수 없기 때문에 객체를 새로 만든다.
+                                mUserRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                if( !dataSnapshot.exists()) {
+                                                    mUserRef.child(user.getUid()).setValue(user, new DatabaseReference.CompletionListener() {
+                                                        @Override
+                                                        //setValue는 비동기 작업이 되기 때문에 이 작업이 완료가 됬는지 안됬는지 알 수가 없다.
+                                                        // 그래서 정상적으로 컴플리트가 된 경우에만 로그를 쌓는것으로 한다.
+                                                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                                            Snackbar.make(mProgressView, "로그인에 성공하였습니다.", Snackbar.LENGTH_LONG).show();
+                                                            if (databaseError == null) {
+                                                                startActivity(new Intent(LoginActivity.this, MainActivity.class)); // 로그인에서 main 화면으로 보내느것.
+                                                                finish(); // 액티비티가 넘어가고 인증창 멈춤
+                                                                Bundle eventBundle = new Bundle();          //이벤트는 번들로 받아야 하기 때문에 생성
+                                                                eventBundle.putString("email", user.getEmail()); //이메일만 번들에 입력
+                                                                mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.LOGIN, eventBundle);
+                                                                //콜백절에서 실행되기 때문에 데이터가 변경되지 않도록 final이라는 예약어로 데이터가 변경되는 것을 방지해야한다
+                                                                // 즉, user를 final로 만듬
+                                                                //로그 확인은  if문에 브래이크를 걸고 result를 확인해보면됨
+                                                            }
+                                                        }
+                                                    }); //해당 users는 users DB 밑에 userid들이 들어있는것이므로
+                                                    //바로위 user를 사용 할 수 없기 때문에 객체를 새로 만든다.
+                                                }
+                                                else{
+                                                    //만약에 존재한다면 기존의 데이터가 손상되지 않게함
+                                                    startActivity(new Intent(LoginActivity.this,MainActivity.class));
+                                                    finish();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
+
 
 
                                //key값을 파이어베이스에서 제공해줌 지금입력한건
